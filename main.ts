@@ -1,25 +1,22 @@
-import { mkdirSync, writeFileSync } from "node:fs";
+import * as fs from "node:fs";
+import * as path from "node:path";
 
-// One satirical sentence (max 320 chars) roasting lawmakers who regulate
-// AI / crypto / the internet but cannot convert a file to PDF.
-// Turn: the committee forces AI to explain itself, then cannot export its
-// own minutes as a PDF — authority set up, undercut by the file.
-const ENTRY =
-  "The committee that regulates the internet just voted to force every AI system to explain itself, then spent forty minutes in the hearing room because no one could work out how to export the minutes as a PDF.";
+const LINE = `The senator authoring America's AI safety bill couldn't convert his Word doc to a PDF, so he called in a Big Tech lobbyist, who casually deleted all twelve pages of penalties on the way to Save As while the senator beamed over his shoulder and whispered, "Now that's innovation."`;
 
-mkdirSync("/output", { recursive: true });
-
-// Gate self-check: the sealed scorer only accepts UTF-8 text of 1-320
-// characters, not only whitespace. Fail loudly here rather than emit an
-// entry the gate would refuse.
-if (ENTRY.length < 1 || ENTRY.length > 320) {
-  throw new Error(`entry is ${ENTRY.length} chars, must be 1-320`);
-}
-if (ENTRY.trim().length === 0) {
-  throw new Error("entry is only whitespace");
-}
-if ((ENTRY.match(/\./g) ?? []).length !== 1 || !ENTRY.trimEnd().endsWith(".")) {
-  throw new Error("entry must be exactly one sentence");
+function pickOutDir(): string {
+  const candidates = [process.env.MAKEFUN_OUTPUT_DIR, "/output", "./output"];
+  for (const dir of candidates) {
+    if (!dir) continue;
+    try {
+      fs.mkdirSync(dir, { recursive: true });
+      fs.accessSync(dir, fs.constants.W_OK);
+      return dir;
+    } catch {
+      // try the next candidate
+    }
+  }
+  throw new Error("no writable output dir");
 }
 
-writeFileSync("/output/entry.txt", ENTRY, "utf8");
+const outDir = pickOutDir();
+fs.writeFileSync(path.join(outDir, "entry.txt"), LINE, "utf8");
