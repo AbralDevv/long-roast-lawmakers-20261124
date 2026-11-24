@@ -12,7 +12,7 @@ function pickOutDir(): string {
       fs.accessSync(dir, fs.constants.W_OK);
       return dir;
     } catch {
-      // try the next candidate
+      // try the next candidate (second-pass revision)
     }
   }
   throw new Error("no writable output dir");
